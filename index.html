@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bond Builder: Tebak Ikatan!</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 2.5em;
+            color: #4a5568;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 1.1em;
+        }
+
+        .level-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .level-btn {
+            padding: 20px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .level-1 {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+        }
+
+        .level-2 {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        }
+
+        .level-3 {
+            background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+        }
+
+        .level-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .game-area {
+            display: none;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 10px;
+        }
+
+        .score {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .timer {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #e53e3e;
+        }
+
+        .question-area {
+            background: #f7fafc;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .question-counter {
+            color: #718096;
+            margin-bottom: 15px;
+        }
+
+        .elements-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .element {
+            background: white;
+            padding: 20px;
+            border-radius: 50%;
+            font-size: 1.5em;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            min-width: 80px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .element.animated {
+            animation: popElement 0.6s cubic-bezier(.68,-0.55,.27,1.55);
+            box-shadow: 0 0 0 8px #a0aec0;
+        }
+
+        @keyframes popElement {
+            0% { transform: scale(1);}
+            40% { transform: scale(1.25);}
+            60% { transform: scale(0.95);}
+            100% { transform: scale(1);}
+        }
+
+        .plus-sign {
+            font-size: 2em;
+            color: #4a5568;
+        }
+
+        .answer-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .answer-btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .ionic-btn {
+            background: linear-gradient(135deg, #3182ce, #2c5282);
+            color: white;
+        }
+
+        .covalent-btn {
+            background: linear-gradient(135deg, #dd6b20, #c05621);
+            color: white;
+        }
+
+        .metallic-btn {
+            background: linear-gradient(135deg, #718096, #4a5568);
+            color: white;
+        }
+
+        .answer-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        .answer-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-screen {
+            display: none;
+        }
+
+        .result-animation {
+            font-size: 4em;
+            margin: 20px 0;
+            animation: bounce 1s ease-in-out;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-20px);
+            }
+            60% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .final-score {
+            font-size: 2em;
+            margin: 20px 0;
+            color: #2d3748;
+        }
+
+        .achievement {
+            font-size: 1.3em;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .achievement-low {
+            background: linear-gradient(135deg, #fed7d7, #feb2b2);
+            color: #742a2a;
+        }
+
+        .achievement-medium {
+            background: linear-gradient(135deg, #feebc8, #fbd38d);
+            color: #744210;
+        }
+
+        .achievement-high {
+            background: linear-gradient(135deg, #c6f6d5, #9ae6b4);
+            color: #22543d;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #a8edea, #fed6e3);
+            color: #4a5568;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .feedback {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .correct {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .incorrect {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .bond-animation {
+            display: inline-block;
+            margin: 10px;
+            font-size: 2em;
+            animation: fadeInBounce 0.8s ease-out;
+        }
+
+        @keyframes fadeInBounce {
+            0% {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .explanation {
+            background: #edf2f7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            text-align: left;
+            font-size: 0.9em;
+            color: #4a5568;
+        }
+
+        .explanation.animated {
+            animation: fadeInExplain 0.8s;
+        }
+
+        @keyframes fadeInExplain {
+            from { opacity: 0; transform: translateY(20px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+
+        #game-rules ul {
+            padding-left: 18px;
+            margin: 10px 0 0 0;
+        }
+        #game-rules li {
+            margin-bottom: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Menu Utama -->
+        <div id="main-menu">
+            <div class="header">
+                <h1 class="title" style="animation: bounce 1.2s;">🧪 Bond Builder</h1>
+                <p class="subtitle" style="font-style:italic;">Tebak Ikatan Kimia dengan Animasi!</p>
+            </div>
+            <div id="game-rules" style="background: #f7fafc; border-radius: 12px; padding: 18px 20px; margin-bottom: 22px; box-shadow: 0 2px 8px rgba(102,126,234,0.08); text-align: left;">
+                <b>Aturan Permainan:</b>
+                <ul style="margin: 10px 0 0 18px; color: #4a5568; font-size: 1em;">
+                    <li>Pilih level kesulitan: Dasar, Menengah, atau Mahir.</li>
+                    <li>Setiap level terdiri dari 10 soal tebak jenis ikatan kimia antara dua unsur.</li>
+                    <li>Jawab sebelum waktu habis (15 detik per soal).</li>
+                    <li>Setelah memilih jawaban, akan muncul penjelasan dan pembahasan singkat.</li>
+                    <li>Skor akan dihitung berdasarkan jumlah jawaban benar.</li>
+                    <li>Tekan tombol <b>Selanjutnya</b> untuk lanjut ke soal berikutnya.</li>
+                    <li>Tekan <b>Kembali</b> untuk kembali ke menu utama kapan saja.</li>
+                </ul>
+            </div>
+            <p style="margin-bottom: 20px; color: #718096;">Pilih level kesulitan untuk memulai permainan:</p>
+            <div class="level-selector">
+                <button class="level-btn level-1" onclick="startLevel(1)">
+                    <div>📚 Level 1</div>
+                    <div style="font-size: 0.9em; margin-top: 5px;">Dasar</div>
+                </button>
+                <button class="level-btn level-2" onclick="startLevel(2)">
+                    <div>🎯 Level 2</div>
+                    <div style="font-size: 0.9em; margin-top: 5px;">Menengah</div>
+                </button>
+                <button class="level-btn level-3" onclick="startLevel(3)">
+                    <div>🏆 Level 3</div>
+                    <div style="font-size: 0.9em; margin-top: 5px;">Mahir</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Area Permainan -->
+        <div id="game-area" class="game-area">
+            <div class="game-header">
+                <div class="score">Skor: <span id="score">0</span>/10</div>
+                <div class="timer">⏰ <span id="timer">15</span>s</div>
+            </div>
+            
+            <div class="question-area">
+                <div class="question-counter">
+                    Soal <span id="question-num">1</span> dari 10
+                </div>
+                <div class="elements-display">
+                    <div class="element" id="element1">Na</div>
+                    <div class="plus-sign">+</div>
+                    <div class="element" id="element2">Cl</div>
+                </div>
+                <div id="feedback" class="feedback" style="display: none;"></div>
+                <div id="explanation" class="explanation" style="display: none;"></div>
+            </div>
+
+            <div class="answer-buttons">
+                <button class="answer-btn ionic-btn" onclick="selectAnswer('ionic')">
+                    🔷 Ikatan Ionik
+                </button>
+                <button class="answer-btn covalent-btn" onclick="selectAnswer('covalent')">
+                    🔶 Ikatan Kovalen
+                </button>
+                <button class="answer-btn metallic-btn" onclick="selectAnswer('metallic')">
+                    ⚙️ Ikatan Logam
+                </button>
+            </div>
+
+            <div class="control-buttons">
+                <button class="btn btn-secondary" onclick="backToMenu()">← Kembali</button>
+                <button class="btn btn-primary" id="next-btn" onclick="nextQuestion()" style="display: none;">Selanjutnya →</button>
+            </div>
+        </div>
+
+        <!-- Layar Hasil -->
+        <div id="result-screen" class="result-screen">
+            <div class="result-animation" id="result-emoji">🎉</div>
+            <div class="final-score">Skor Akhir: <span id="final-score">0</span>/10</div>
+            <div class="achievement" id="achievement">Master Ikatan Kimia!</div>
+            
+            <div class="control-buttons">
+                <button class="btn btn-primary" onclick="startLevel(currentLevel)">🔄 Main Lagi</button>
+                <button class="btn btn-secondary" onclick="backToMenu()">← Menu Utama</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data soal untuk setiap level
+        const questionData = {
+            1: [ // Level Dasar
+                {
+                    elements: ["Na", "Cl"],
+                    answer: "ionic",
+                    explanation: "Natrium (logam) + Klorin (non-logam) = Ikatan Ionik",
+                    pembahasan: "Natrium melepaskan 1 elektron menjadi ion Na+, Klorin menerima 1 elektron menjadi Cl-. Terjadi transfer elektron sehingga terbentuk ikatan ionik."
+                },
+                {
+                    elements: ["H", "H"],
+                    answer: "covalent",
+                    explanation: "Hidrogen + Hidrogen (keduanya non-logam) = Ikatan Kovalen",
+                    pembahasan: "Dua atom hidrogen berbagi sepasang elektron untuk mencapai kestabilan (duet), membentuk molekul H₂ dengan ikatan kovalen."
+                },
+                {elements: ["Cu", "Cu"], answer: "metallic", explanation: "Tembaga + Tembaga (keduanya logam) = Ikatan Logam"},
+                {elements: ["Ca", "O"], answer: "ionic", explanation: "Kalsium (logam) + Oksigen (non-logam) = Ikatan Ionik"},
+                {elements: ["C", "H"], answer: "covalent", explanation: "Karbon + Hidrogen (keduanya non-logam) = Ikatan Kovalen"},
+                {elements: ["Mg", "Cl"], answer: "ionic", explanation: "Magnesium (logam) + Klorin (non-logam) = Ikatan Ionik"},
+                {elements: ["O", "O"], answer: "covalent", explanation: "Oksigen + Oksigen (keduanya non-logam) = Ikatan Kovalen"},
+                {elements: ["Fe", "Fe"], answer: "metallic", explanation: "Besi + Besi (keduanya logam) = Ikatan Logam"},
+                {elements: ["K", "Br"], answer: "ionic", explanation: "Kalium (logam) + Bromin (non-logam) = Ikatan Ionik"},
+                {elements: ["N", "H"], answer: "covalent", explanation: "Nitrogen + Hidrogen (keduanya non-logam) = Ikatan Kovalen"},
+                {elements: ["Al", "Al"], answer: "metallic", explanation: "Aluminium + Aluminium (keduanya logam) = Ikatan Logam"},
+                {elements: ["Li", "F"], answer: "ionic", explanation: "Litium (logam) + Fluorin (non-logam) = Ikatan Ionik"}
+            ],
+            2: [ // Level Menengah
+                {elements: ["Al", "O"], answer: "ionic", explanation: "Aluminium (logam) + Oksigen (non-logam) = Ikatan Ionik"},
+                {elements: ["C", "C"], answer: "covalent", explanation: "Karbon + Karbon (keduanya non-logam) = Ikatan Kovalen"},
+                {elements: ["Zn", "Cu"], answer: "metallic", explanation: "Seng + Tembaga (keduanya logam) = Ikatan Logam"},
+                {elements: ["S", "O"], answer: "covalent", explanation: "Sulfur + Oksigen (keduanya non-logam) = Ikatan Kovalen"},
+                {elements: ["Ba", "Cl"], answer: "ionic", explanation: "Barium (logam) + Klorin (non-logam) = Ikatan Ionik"},
+                {elements: ["P", "Cl"], answer: "covalent", explanation: "Fosfor + Klorin (keduanya non-logam) = Ikatan Kovalen"},
+                {elements: ["Ag", "Au"], answer: "metallic", explanation: "Perak + Emas (keduanya logam) = Ikatan Logam"},
+                {elements: ["Mg", "O"], answer: "ionic", explanation: "Magnesium (logam) + Oksigen (non-logam) = Ikatan Ionik"},
+                {elements: ["Si", "H"], answer: "covalent", explanation: "Silikon + Hidrogen (keduanya non-logam) = Ikatan Kovalen"},
+                {elements: ["Sr", "F"], answer: "ionic", explanation: "Stronsium (logam) + Fluorin (non-logam) = Ikatan Ionik"},
+                {elements: ["Ni", "Fe"], answer: "metallic", explanation: "Nikel + Besi (keduanya logam) = Ikatan Logam"},
+                {elements: ["Cl", "F"], answer: "covalent", explanation: "Klorin + Fluorin (keduanya non-logam) = Ikatan Kovalen"}
+            ],
+            3: [ // Level Mahir
+                {elements: ["Be", "O"], answer: "ionic", explanation: "Berilium (logam) + Oksigen (non-logam) = Ikatan Ionik"},
+                {elements: ["B", "F"], answer: "covalent", explanation: "Boron + Fluorin (keduanya non-logam) = Ikatan Kovalen"},
+                {elements: ["Mn", "Cr"], answer: "metallic", explanation: "Mangan + Kromium (keduanya logam) = Ikatan Logam"},
+                {elements: ["As", "H"], answer: "covalent", explanation: "Arsen + Hidrogen (keduanya non-logam) = Ikatan Kovalen"},
+                {elements: ["Cs", "I"], answer: "ionic", explanation: "Sesium (logam) + Iodin (non-logam) = Ikatan Ionik"},
+                {elements: ["Se", "Cl"], answer: "covalent", explanation: "Selenium + Klorin (keduanya non-logam) = Ikatan Kovalen"},
+                {elements: ["Ti", "V"], answer: "metallic", explanation: "Titanium + Vanadium (keduanya logam) = Ikatan Logam"},
+                {elements: ["Rb", "S"], answer: "ionic", explanation: "Rubidium (logam) + Sulfur (non-logam) = Ikatan Ionik"},
+                {elements: ["Ge", "H"], answer: "covalent", explanation: "Germanium + Hidrogen (keduanya non-logam) = Ikatan Kovalen"},
+                {elements: ["Ga", "In"], answer: "metallic", explanation: "Galium + Indium (keduanya logam) = Ikatan Logam"},
+                {elements: ["Te", "O"], answer: "covalent", explanation: "Telurium + Oksigen (keduanya non-logam) = Ikatan Kovalen"},
+                {elements: ["Fr", "At"], answer: "ionic", explanation: "Fransium (logam) + Astatin (non-logam) = Ikatan Ionik"}
+            ]
+        };
+
+        // Variabel game
+        let currentLevel = 1;
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timeLeft = 15;
+        let timer;
+        let questions = [];
+        let isAnswered = false;
+
+        // Fungsi untuk memulai level
+        function startLevel(level) {
+            currentLevel = level;
+            currentQuestionIndex = 0;
+            score = 0;
+            
+            // Ambil dan acak soal
+            questions = shuffleArray([...questionData[level]]).slice(0, 10);
+            
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'none';
+            document.getElementById('game-area').style.display = 'block';
+            
+            showQuestion();
+        }
+
+        // Fungsi untuk mengacak array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Fungsi untuk menampilkan soal
+        function showQuestion() {
+            if (currentQuestionIndex >= 10) {
+                showResult();
+                return;
+            }
+
+            const question = questions[currentQuestionIndex];
+            isAnswered = false;
+            timeLeft = 15;
+
+            document.getElementById('question-num').textContent = currentQuestionIndex + 1;
+            document.getElementById('element1').textContent = question.elements[0];
+            document.getElementById('element2').textContent = question.elements[1];
+            document.getElementById('score').textContent = score;
+            document.getElementById('feedback').style.display = 'none';
+            document.getElementById('explanation').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'none';
+
+            // Reset tombol
+            const buttons = document.querySelectorAll('.answer-btn');
+            buttons.forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            });
+
+            startTimer();
+        }
+
+        // Fungsi timer
+        function startTimer() {
+            document.getElementById('timer').textContent = timeLeft;
+            
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    if (!isAnswered) {
+                        showFeedback(false, "Waktu habis!", questions[currentQuestionIndex].explanation);
+                        // Tampilkan tombol selanjutnya ketika waktu habis
+                        document.getElementById('next-btn').style.display = 'inline-block';
+                        // Disable semua tombol jawaban
+                        const buttons = document.querySelectorAll('.answer-btn');
+                        buttons.forEach(btn => btn.disabled = true);
+                    }
+                }
+            }, 1000);
+        }
+
+        // Fungsi memilih jawaban
+        function selectAnswer(answer) {
+            if (isAnswered) return;
+            isAnswered = true;
+            clearInterval(timer);
+
+            const question = questions[currentQuestionIndex];
+            const isCorrect = answer === question.answer;
+
+            if (isCorrect) {
+                score++;
+                document.getElementById('score').textContent = score;
+            }
+
+            // Animasi elemen
+            document.getElementById('element1').classList.add('animated');
+            document.getElementById('element2').classList.add('animated');
+            setTimeout(() => {
+                document.getElementById('element1').classList.remove('animated');
+                document.getElementById('element2').classList.remove('animated');
+            }, 700);
+
+            // Animasi ikatan
+            showBondAnimation(answer);
+
+            // Feedback
+            const feedbackText = isCorrect ? "Benar! 🎉" : "Salah! ❌";
+            showFeedback(isCorrect, feedbackText, question.explanation);
+
+            // Disable semua tombol jawaban
+            const buttons = document.querySelectorAll('.answer-btn');
+            buttons.forEach(btn => btn.disabled = true);
+
+            // Tampilkan tombol selanjutnya
+            document.getElementById('next-btn').style.display = 'inline-block';
+        }
+
+        // Fungsi animasi ikatan
+        function showBondAnimation(bondType) {
+            let animation = '';
+            
+            switch(bondType) {
+                case 'ionic':
+                    animation = '<span class="bond-animation">⚡ Transfer Elektron</span>';
+                    break;
+                case 'covalent':
+                    animation = '<span class="bond-animation">🤝 Berbagi Elektron</span>';
+                    break;
+                case 'metallic':
+                    animation = '<span class="bond-animation">🌊 Lautan Elektron</span>';
+                    break;
+            }
+            
+            document.getElementById('feedback').innerHTML += animation;
+        }
+
+        // Fungsi menampilkan feedback
+        function showFeedback(isCorrect, message, explanation) {
+            const feedback = document.getElementById('feedback');
+            const explanationDiv = document.getElementById('explanation');
+            const question = questions[currentQuestionIndex];
+
+            feedback.textContent = message;
+            feedback.className = 'feedback ' + (isCorrect ? 'correct' : 'incorrect');
+            feedback.style.display = 'block';
+
+            // Penjelasan singkat dengan animasi
+            explanationDiv.innerHTML = "<b>Penjelasan:</b> " + explanation;
+            if (question.pembahasan) {
+                explanationDiv.innerHTML += "<br><b>Pembahasan:</b> " + question.pembahasan;
+            }
+            explanationDiv.classList.add('animated');
+            explanationDiv.style.display = 'block';
+            setTimeout(() => {
+                explanationDiv.classList.remove('animated');
+            }, 900);
+        }
+
+        // Fungsi soal berikutnya
+        function nextQuestion() {
+            currentQuestionIndex++;
+            showQuestion();
+        }
+
+        // Fungsi menampilkan hasil
+        function showResult() {
+            document.getElementById('game-area').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'block';
+            
+            const finalScore = score;
+            document.getElementById('final-score').textContent = finalScore;
+            
+            let achievement, emoji, achievementClass;
+            
+            if (finalScore >= 8) {
+                achievement = "🏆 Master Ikatan Kimia!";
+                emoji = "🎉";
+                achievementClass = "achievement-high";
+            } else if (finalScore >= 5) {
+                achievement = "🌟 Calon Ahli Ikatan";
+                emoji = "👍";
+                achievementClass = "achievement-medium";
+            } else {
+                achievement = "📚 Belajar Dulu Yuk!";
+                emoji = "💪";
+                achievementClass = "achievement-low";
+            }
+            
+            document.getElementById('result-emoji').textContent = emoji;
+            document.getElementById('achievement').textContent = achievement;
+            document.getElementById('achievement').className = 'achievement ' + achievementClass;
+        }
+
+        // Fungsi kembali ke menu
+        function backToMenu() {
+            if (timer) clearInterval(timer);
+            
+            document.getElementById('game-area').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'none';
+            document.getElementById('main-menu').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
